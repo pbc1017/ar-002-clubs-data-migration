@@ -1,0 +1,11 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# 원본 데이터베이스 연결
+SOURCE_DB_URL = "mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
+source_engine = create_engine(SOURCE_DB_URL)
+SourceSession = sessionmaker(bind=source_engine)
+# 타겟 데이터베이스 연결
+TARGET_DB_URL = "mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
+target_engine = create_engine(TARGET_DB_URL)
+TargetSession = sessionmaker(bind=target_engine)
