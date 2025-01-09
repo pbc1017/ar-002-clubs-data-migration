@@ -6,9 +6,12 @@ import aiofiles
 import asyncio
 from typing import List, Dict
 from config import API_ACCESS_TOKEN
-from model.source import SourceActivity
+from model.source import SourceActivity, SourceActivitySign, SourceActivityFeedback, SourceActivityMember
 
-def transform_activity(source_activity, source_activity_sign):
+def transform_activity(
+        source_activity: SourceActivity,
+        source_activity_sign: List[SourceActivitySign]
+    ) -> Dict:
     # recent_edit이 2024-03-01 이전이면 activity_d_id를 7로 설정
     if (source_activity.recent_edit < datetime.datetime(2024, 3, 1)):
         activity_d_id = 7
@@ -53,7 +56,10 @@ def transform_activity(source_activity, source_activity_sign):
         "professor_approved_at": professor_approved_at,
     }
 
-def transform_activity_t(source_activity, target_activity_id):
+def transform_activity_t(
+        source_activity: SourceActivity,
+        target_activity_id: int
+    ) -> Dict:
     return {
         "activity_id": target_activity_id,
         "start_term": source_activity.start_date,
@@ -61,14 +67,20 @@ def transform_activity_t(source_activity, target_activity_id):
         "created_at": source_activity.recent_edit,
     }
 
-def transform_activity_feedback(source_activity_feedback, target_activity_id):
+def transform_activity_feedback(
+        source_activity_feedback: SourceActivityFeedback,
+        target_activity_id: int
+    ) -> Dict:
     return {
         "activity_id": target_activity_id,
         "feedback_type": source_activity_feedback.feedback_type,
         "feedback_content": source_activity_feedback.feedback_content,
     }
 
-def transform_activity_participant(source_activity_participant, target_activity_id):
+def transform_activity_participant(
+        source_activity_participant: SourceActivityMember,
+        target_activity_id: int
+    ) -> Dict:
     return {
         "activity_id": target_activity_id,
         "user_id": source_activity_participant.user_id,
