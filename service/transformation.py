@@ -1,4 +1,11 @@
 import datetime
+import os
+import shutil
+import aiohttp
+import aiofiles
+import asyncio
+from typing import List, Dict
+from config import API_ACCESS_TOKEN
 
 
 def transform_activity(source_activity, source_activity_sign):
@@ -46,12 +53,99 @@ def transform_activity(source_activity, source_activity_sign):
         "professor_approved_at": professor_approved_at,
     }
 
-def transform_activity_evidence_file(source_activity_evidence_file, target_activity_id):
-    return {
-        "activity_id": target_activity_id,
-        "file_name": source_activity_evidence_file.file_name,
-        "file_path": source_activity_evidence_file.file_path,
-    }
+async def transform_activity_evidence_files(source_activity_evidences: List, target_activity_id: int) -> List[Dict]:
+    """
+    ActivityEvidence 파일들을 새로운 시스템으로 변환
+    1. 파일 다운로드
+    2. API를 통해 업로드 URL 획득
+    3. 파일 업로드
+    4. 결과 반환
+    """
+    # tmp 디렉토리 초기화
+    TMP_DIR = "tmp"
+    if os.path.exists(TMP_DIR):
+        shutil.rmtree(TMP_DIR)
+    os.makedirs(TMP_DIR)
+
+    try:
+        # 파일 다운로드 및 메타데이터 준비
+        file_metadatas = []
+        downloaded_files = []
+        
+        async with aiohttp.ClientSession() as session:
+            for evidence in source_activity_evidences:
+                file_name = evidence.description
+                tmp_path = os.path.join(TMP_DIR, file_name)
+                
+                # 파일 다운로드
+                async with session.get(evidence.image_url) as response:
+                    if response.status != 200:
+                        raise Exception(f"Failed to download file: {file_name}")
+                    
+                    async with aiofiles.open(tmp_path, 'wb') as f:
+                        await f.write(await response.read())
+                
+                # 파일 메타데이터 준비
+                file_size = os.path.getsize(tmp_path)
+                file_type = file_name.split('.')[-1]
+                
+                file_metadatas.append({
+                    "name": file_name,
+                    "type": f"image/{file_type}",
+                    "size": file_size
+                })
+                downloaded_files.append(tmp_path)
+
+        # API를 통해 업로드 URL 획득
+        headers = {"Authorization": f"Bearer {API_ACCESS_TOKEN}"}
+        max_retries = 3
+        
+        async def try_api_call():
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"https://clubs.stage.sparcs.org/api/files/upload",
+                    json={"metadata": file_metadatas},
+                    headers=headers
+                ) as response:
+                    if response.status != 201:
+                        raise Exception("Failed to get upload URLs")
+                    return await response.json()
+
+        # API 호출 재시도 로직
+        for attempt in range(max_retries):
+            try:
+                api_response = await try_api_call()
+                break
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise e
+                await asyncio.sleep(1)
+
+        # 파일 업로드
+        results = []
+        for idx, url_info in enumerate(api_response["urls"]):
+            file_path = downloaded_files[idx]
+            
+            async with aiohttp.ClientSession() as session:
+                async with aiofiles.open(file_path, 'rb') as f:
+                    file_content = await f.read()
+                    
+                async with session.put(url_info["uploadUrl"], data=file_content) as response:
+                    if response.status != 200:
+                        raise Exception(f"Failed to upload file: {url_info['name']}")
+            
+            results.append({
+                "activity_id": target_activity_id,
+                "file_id": url_info["fileId"],
+                "created_at": datetime.datetime.now()
+            })
+
+        return results
+
+    finally:
+        # 임시 파일 정리
+        if os.path.exists(TMP_DIR):
+            shutil.rmtree(TMP_DIR)
 
 def transform_activity_feedback(source_activity_feedback, target_activity_id):
     return {

@@ -9,3 +9,6 @@ SourceSession = sessionmaker(bind=source_engine)
 TARGET_DB_URL = "mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
 target_engine = create_engine(TARGET_DB_URL)
 TargetSession = sessionmaker(bind=target_engine)
+
+# API Configuration
+API_ACCESS_TOKEN = ""
