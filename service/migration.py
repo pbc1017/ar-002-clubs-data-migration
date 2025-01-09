@@ -4,11 +4,12 @@ from model.source import ActivityEvidence as SourceActivityEvidence
 from model.source import ActivityFeedback as SourceActivityFeedback
 from model.source import ActivityMember as SourceActivityMember
 from model.target import Activity as TargetActivity
+from model.target import ActivityT as TargetActivityT
 from model.target import ActivityEvidenceFile as TargetActivityEvidenceFile
 from model.target import ActivityFeedback as TargetActivityFeedback
 from model.target import ActivityParticipant as TargetActivityParticipant
 from config import SourceSession, TargetSession
-from service.transformation import transform_activity, transform_activity_evidence_files, transform_activity_feedback, transform_activity_participant
+from service.transformation import transform_activity, transform_activity_t, transform_activity_evidence_files, transform_activity_feedback, transform_activity_participant
 
 async def migrate_activities():
     source_session = SourceSession()
@@ -48,14 +49,11 @@ async def migrate_activity(target_session, source_session, source_activity):
     target_session.refresh(target_activity)
     target_activity_id = target_activity.id
 
-    # activity_evidence_file 변환
-    source_activity_evidences = source_session.query(SourceActivityEvidence).filter(SourceActivityEvidence.activity_id == source_activity.id).all()
-    if source_activity_evidences:
-        transformed_activity_evidence_files = await transform_activity_evidence_files(source_activity_evidences, target_activity_id)
-        for transformed_activity_evidence_file in transformed_activity_evidence_files:
-            target_activity_evidence_file = TargetActivityEvidenceFile(**transformed_activity_evidence_file)
-            target_session.add(target_activity_evidence_file)
-        
+    # activity_t 변환
+    transformed_activity_t = transform_activity_t(source_activity, target_activity_id)
+    target_activity_t = TargetActivityT(**transformed_activity_t)
+    target_session.add(target_activity_t)
+
     # # activity_feedback 변환
     # source_activity_feedbacks = source_session.query(SourceActivityFeedback).filter(SourceActivityFeedback.activity_id == source_activity.id).all()
     # for source_activity_feedback in source_activity_feedbacks:
@@ -69,6 +67,14 @@ async def migrate_activity(target_session, source_session, source_activity):
     #     transformed_activity_participant = transform_activity_participant(source_activity_participant, target_activity_id)
     #     target_activity_participant = TargetActivityParticipant(**transformed_activity_participant)
     #     target_session.add(target_activity_participant)
+
+    # activity_evidence_file 변환
+    source_activity_evidences = source_session.query(SourceActivityEvidence).filter(SourceActivityEvidence.activity_id == source_activity.id).all()
+    if source_activity_evidences:
+        transformed_activity_evidence_files = await transform_activity_evidence_files(source_activity, source_activity_evidences, target_activity_id)
+        for transformed_activity_evidence_file in transformed_activity_evidence_files:
+            target_activity_evidence_file = TargetActivityEvidenceFile(**transformed_activity_evidence_file)
+            target_session.add(target_activity_evidence_file)
 
 
 
