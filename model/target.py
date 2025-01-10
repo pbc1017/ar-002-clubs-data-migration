@@ -5,6 +5,7 @@ from sqlalchemy import (
     Text,
     DateTime,
     TIMESTAMP,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.ext.declarative import declarative_base
@@ -73,3 +74,33 @@ class ActivityT(Base):
     end_term = Column(DateTime, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     deleted_at = Column(TIMESTAMP)
+
+# Student 테이블
+class Student(Base):
+    __tablename__ = "student"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=True)
+    number = Column(Integer, nullable=True)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
+    phone_number = Column(String(30), nullable=True)
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    deleted_at = Column(TIMESTAMP)
+
+    __table_args__ = (UniqueConstraint("number"),)
+
+# Executive 테이블
+class Executive(Base):
+    __tablename__ = "executive"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=True)
+    student_id = Column(Integer, nullable=False)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
+    phone_number = Column(String(30), nullable=True)
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    deleted_at = Column(TIMESTAMP)
+
+    __table_args__ = (ForeignKeyConstraint(["student_id"], ["student.id"]),)
