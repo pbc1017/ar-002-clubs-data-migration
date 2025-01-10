@@ -34,7 +34,7 @@ async def migrate_activities():
         
         # 커밋
         target_session.commit()
-        print("Migration completed successfully.")
+        print(f"Migration completed successfully. clubId: {i}")
 
     source_session.close()
     target_session.close()
