@@ -29,13 +29,13 @@ def transform_activity(
 
     # 리스트에서 semesterId가 activity_d_id = 7 일경우 14, 아닐경우 15인 데이터 중 sign_time이 가장 최신인 데이터를 찾아서 반환
     if (activity_d_id == 7):
-        professor_approved_at = [sign for sign in source_activity_sign if sign.semesterId == 14]
+        professor_approved_at = [sign for sign in source_activity_sign if sign.semester_id == 14]
         if (professor_approved_at):
             professor_approved_at = professor_approved_at[0].sign_time
         else:
             professor_approved_at = None
     else:
-        professor_approved_at = [sign for sign in source_activity_sign if sign.semesterId == 15]
+        professor_approved_at = [sign for sign in source_activity_sign if sign.semester_id == 15]
         if (professor_approved_at):
             professor_approved_at = professor_approved_at[0].sign_time
         else:

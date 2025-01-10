@@ -18,11 +18,9 @@ async def migrate_activities():
     target_session = TargetSession()
 
     # 원본 데이터 로드
-    for i in range(2, 3):
-    # for i in range(1, 88):
+    for i in range(1, 88):
+        print(f"Migrating club {i}...")
         source_activities = source_session.query(SourceActivity).order_by(SourceActivity.id).filter(SourceActivity.club_id == i).all()
-        preview = [{'id': source_activity.id, 'title': source_activity.title} for source_activity in source_activities]
-        # print(preview)
         
         if len(source_activities) == 0:
             continue
