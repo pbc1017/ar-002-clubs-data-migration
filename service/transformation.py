@@ -5,8 +5,9 @@ import aiohttp
 import aiofiles
 import asyncio
 from typing import List, Dict
-from config import API_ACCESS_TOKEN
 from model.source import SourceActivity, SourceActivitySign, SourceActivityFeedback, SourceActivityMember
+from model.target import Student as TargetStudent
+from config import API_ACCESS_TOKEN
 
 def transform_activity(
         source_activity: SourceActivity,
@@ -67,6 +68,22 @@ def transform_activity_t(
         "created_at": source_activity.recent_edit,
     }
 
+def transform_activity_participants(
+        source_activity: SourceActivity,
+        target_students: List[TargetStudent],
+        target_activity_id: int
+    ) -> List[Dict]:
+
+
+    return [
+        {
+            "activity_id": target_activity_id,
+            "student_id": target_student.id,
+            "created_at": source_activity.recent_edit,
+        }
+        for target_student in target_students
+    ]
+
 def transform_activity_feedback(
         source_activity_feedback: SourceActivityFeedback,
         target_activity_id: int
@@ -75,15 +92,6 @@ def transform_activity_feedback(
         "activity_id": target_activity_id,
         "feedback_type": source_activity_feedback.feedback_type,
         "feedback_content": source_activity_feedback.feedback_content,
-    }
-
-def transform_activity_participant(
-        source_activity_participant: SourceActivityMember,
-        target_activity_id: int
-    ) -> Dict:
-    return {
-        "activity_id": target_activity_id,
-        "user_id": source_activity_participant.user_id,
     }
 
 async def transform_activity_evidence_files(

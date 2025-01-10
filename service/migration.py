@@ -8,8 +8,9 @@ from model.target import ActivityT as TargetActivityT
 from model.target import ActivityEvidenceFile as TargetActivityEvidenceFile
 from model.target import ActivityFeedback as TargetActivityFeedback
 from model.target import ActivityParticipant as TargetActivityParticipant
+from model.target import Student as TargetStudent
 from config import SourceSession, TargetSession
-from service.transformation import transform_activity, transform_activity_t, transform_activity_evidence_files, transform_activity_feedback, transform_activity_participant
+from service.transformation import transform_activity, transform_activity_t, transform_activity_participants, transform_activity_feedback, transform_activity_evidence_files
 
 async def migrate_activities():
     source_session = SourceSession()
@@ -54,19 +55,21 @@ async def migrate_activity(target_session, source_session, source_activity):
     target_activity_t = TargetActivityT(**transformed_activity_t)
     target_session.add(target_activity_t)
 
+    # activity_participant 변환
+    source_activity_participants = source_session.query(SourceActivityMember).filter(SourceActivityMember.activity_id == source_activity.id).all()
+    source_activity_member_ids = [source_activity_participant.member_student_id for source_activity_participant in source_activity_participants]
+    target_students = target_session.query(TargetStudent).filter(TargetStudent.student_number.in_(source_activity_member_ids)).all()
+    transformed_activity_participants = transform_activity_participants(source_activity, target_students, target_activity_id)
+    for transformed_activity_participant in transformed_activity_participants:
+        target_activity_participant = TargetActivityParticipant(**transformed_activity_participant)
+        target_session.add(target_activity_participant)
+
     # # activity_feedback 변환
     # source_activity_feedbacks = source_session.query(SourceActivityFeedback).filter(SourceActivityFeedback.activity_id == source_activity.id).all()
     # for source_activity_feedback in source_activity_feedbacks:
     #     transformed_activity_feedback = transform_activity_feedback(source_activity_feedback, target_activity_id)
     #     target_activity_feedback = TargetActivityFeedback(**transformed_activity_feedback)
     #     target_session.add(target_activity_feedback)
-
-    # # activity_participant 변환
-    # source_activity_participants = source_session.query(SourceActivityMember).filter(SourceActivityMember.activity_id == source_activity.id).all()
-    # for source_activity_participant in source_activity_participants:
-    #     transformed_activity_participant = transform_activity_participant(source_activity_participant, target_activity_id)
-    #     target_activity_participant = TargetActivityParticipant(**transformed_activity_participant)
-    #     target_session.add(target_activity_participant)
 
     # activity_evidence_file 변환
     source_activity_evidences = source_session.query(SourceActivityEvidence).filter(SourceActivityEvidence.activity_id == source_activity.id).all()
