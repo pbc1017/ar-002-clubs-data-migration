@@ -98,6 +98,7 @@ def transform_activity_feedbacks(
             "created_at": source_activity_feedback.added_time,
         }
         for source_activity_feedback in source_activity_feedbacks
+        if source_activity_feedback.feedback != ""
     ]
 
 async def transform_activity_evidence_files(
