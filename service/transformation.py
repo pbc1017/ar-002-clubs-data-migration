@@ -5,9 +5,10 @@ import aiohttp
 import aiofiles
 import asyncio
 from typing import List, Dict
-from model.source import SourceActivity, SourceActivitySign, SourceActivityFeedback, SourceActivityMember
+
+from model.source import Activity as SourceActivity, ActivityFeedback as SourceActivityFeedback, ActivitySign as SourceActivitySign
 from model.target import Student as TargetStudent, Executive as TargetExecutive
-from config import API_ACCESS_TOKEN
+from config import API_ACCESS_TOKEN, API_BASE_URL
 
 def transform_activity(
         source_activity: SourceActivity,
@@ -82,7 +83,7 @@ def transform_activity_participants(
         for target_student in target_students
     ]
 
-def transform_activity_feedback(
+def transform_activity_feedbacks(
         source_activity_feedbacks: List[SourceActivityFeedback],
         target_executives: List[TargetExecutive],
         target_activity_id: int
@@ -92,7 +93,7 @@ def transform_activity_feedback(
     return [
         {
             "activity_id": target_activity_id,
-            "excutive_id": target_executive_map[source_activity_feedback.student_id],
+            "executive_id": target_executive_map[source_activity_feedback.student_id],
             "comment": source_activity_feedback.feedback,
             "created_at": source_activity_feedback.added_time,
         }
@@ -153,7 +154,7 @@ async def transform_activity_evidence_files(
         async def try_api_call():
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    f"https://clubs.stage.sparcs.org/api/files/upload",
+                    f"{API_BASE_URL}/files/upload",
                     json={"metadata": file_metadatas},
                     headers=headers
                 ) as response:

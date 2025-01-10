@@ -1,5 +1,6 @@
 from sqlalchemy import (
     Column,
+    ForeignKeyConstraint,
     Integer,
     String,
     Text,
@@ -8,6 +9,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -87,6 +89,7 @@ class Student(Base):
     phone_number = Column(String(30), nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     deleted_at = Column(TIMESTAMP)
+    executive = relationship("Executive", back_populates="student")
 
     __table_args__ = (UniqueConstraint("number"),)
 
@@ -102,5 +105,6 @@ class Executive(Base):
     phone_number = Column(String(30), nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     deleted_at = Column(TIMESTAMP)
+    student = relationship("Student", back_populates="executive")
 
     __table_args__ = (ForeignKeyConstraint(["student_id"], ["student.id"]),)

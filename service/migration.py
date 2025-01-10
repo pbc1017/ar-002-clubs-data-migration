@@ -27,12 +27,12 @@ async def migrate_activities():
         if len(source_activities) == 0:
             continue
     
-        # try:
-        for source_activity in source_activities:
-            # 변환 로직 실행
-            await migrate_activity(target_session, source_session, source_activity)
-        # except Exception as e:
-        #     print(f"Error during migration: {e}, clubId: {i}")
+        try:
+            for source_activity in source_activities:
+                # 변환 로직 실행
+                await migrate_activity(target_session, source_session, source_activity)
+        except Exception as e:
+            print(f"Error during migration: {e}, clubId: {i}")
         
         # 커밋
         target_session.commit()
@@ -67,10 +67,9 @@ async def migrate_activity(target_session, source_session, source_activity):
             target_session.add(target_activity_participant)
 
     # activity_feedback 변환
-    source_activity_feedbacks = source_session.query(SourceActivityFeedback).filter(SourceActivityFeedback.activity_id == source_activity.id).all()
+    source_activity_feedbacks = source_session.query(SourceActivityFeedback).filter(SourceActivityFeedback.activity == source_activity.id).all()
     source_activity_feedback_student_ids = [source_activity_feedback.student_id for source_activity_feedback in source_activity_feedbacks]
-    target_executives = target_session.query(TargetExecutive) \
-        .join(TargetStudent, TargetExecutive.student_id == TargetStudent.id) \
+    target_executives = target_session.query(TargetExecutive).join(TargetExecutive.student) \
         .filter(TargetStudent.number.in_(source_activity_feedback_student_ids)).all()
     if source_activity_feedbacks:
         transformed_activity_feedbacks = transform_activity_feedbacks(source_activity_feedbacks, target_executives, target_activity_id)
