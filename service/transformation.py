@@ -6,7 +6,7 @@ import aiofiles
 import asyncio
 from typing import List, Dict
 from model.source import SourceActivity, SourceActivitySign, SourceActivityFeedback, SourceActivityMember
-from model.target import Student as TargetStudent
+from model.target import Student as TargetStudent, Executive as TargetExecutive
 from config import API_ACCESS_TOKEN
 
 def transform_activity(
@@ -73,8 +73,6 @@ def transform_activity_participants(
         target_students: List[TargetStudent],
         target_activity_id: int
     ) -> List[Dict]:
-
-
     return [
         {
             "activity_id": target_activity_id,
@@ -85,14 +83,21 @@ def transform_activity_participants(
     ]
 
 def transform_activity_feedback(
-        source_activity_feedback: SourceActivityFeedback,
+        source_activity_feedbacks: List[SourceActivityFeedback],
+        target_executives: List[TargetExecutive],
         target_activity_id: int
-    ) -> Dict:
-    return {
-        "activity_id": target_activity_id,
-        "feedback_type": source_activity_feedback.feedback_type,
-        "feedback_content": source_activity_feedback.feedback_content,
-    }
+    ) -> List[Dict]:
+    target_executive_map = {target_executive.student.number: target_executive.id for target_executive in target_executives}
+
+    return [
+        {
+            "activity_id": target_activity_id,
+            "excutive_id": target_executive_map[source_activity_feedback.student_id],
+            "comment": source_activity_feedback.feedback,
+            "created_at": source_activity_feedback.added_time,
+        }
+        for source_activity_feedback in source_activity_feedbacks
+    ]
 
 async def transform_activity_evidence_files(
         source_activity: SourceActivity,
