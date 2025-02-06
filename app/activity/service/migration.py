@@ -1,17 +1,17 @@
-from model.activity.source import Activity as SourceActivity
-from model.activity.source import ActivitySign as SourceActivitySign
-from model.activity.source import ActivityEvidence as SourceActivityEvidence
-from model.activity.source import ActivityFeedback as SourceActivityFeedback
-from model.activity.source import ActivityMember as SourceActivityMember
-from model.activity.target import Activity as TargetActivity
-from model.activity.target import ActivityT as TargetActivityT
-from model.activity.target import ActivityEvidenceFile as TargetActivityEvidenceFile
-from model.activity.target import ActivityFeedback as TargetActivityFeedback
-from model.activity.target import ActivityParticipant as TargetActivityParticipant
-from model.activity.target import Student as TargetStudent
-from model.activity.target import Executive as TargetExecutive
+from app.activity.model.source import Activity as SourceActivity
+from app.activity.model.source import ActivitySign as SourceActivitySign
+from app.activity.model.source import ActivityEvidence as SourceActivityEvidence
+from app.activity.model.source import ActivityFeedback as SourceActivityFeedback
+from app.activity.model.source import ActivityMember as SourceActivityMember
+from app.activity.model.target import Activity as TargetActivity
+from app.activity.model.target import ActivityT as TargetActivityT
+from app.activity.model.target import ActivityEvidenceFile as TargetActivityEvidenceFile
+from app.activity.model.target import ActivityFeedback as TargetActivityFeedback
+from app.activity.model.target import ActivityParticipant as TargetActivityParticipant
+from app.activity.model.target import Student as TargetStudent
+from app.activity.model.target import Executive as TargetExecutive
 from config import SourceSession, TargetSession
-from service.transformation import transform_activity, transform_activity_t, transform_activity_participants, transform_activity_feedbacks, transform_activity_evidence_files
+from app.activity.service.transformation import transform_activity, transform_activity_t, transform_activity_participants, transform_activity_feedbacks, transform_activity_evidence_files
 
 async def migrate_activities():
     source_session = SourceSession()

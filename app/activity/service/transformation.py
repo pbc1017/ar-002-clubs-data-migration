@@ -6,8 +6,8 @@ import aiofiles
 import asyncio
 from typing import List, Dict
 
-from model.activity.source import Activity as SourceActivity, ActivityFeedback as SourceActivityFeedback, ActivitySign as SourceActivitySign
-from model.activity.target import Student as TargetStudent, Executive as TargetExecutive
+from app.activity.model.source import Activity as SourceActivity, ActivityFeedback as SourceActivityFeedback, ActivitySign as SourceActivitySign
+from app.activity.model.target import Student as TargetStudent, Executive as TargetExecutive
 from config import API_ACCESS_TOKEN, API_BASE_URL
 
 def transform_activity(
