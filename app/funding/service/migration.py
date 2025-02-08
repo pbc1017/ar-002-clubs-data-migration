@@ -93,6 +93,7 @@ async def migrate_funding(target_session, source_session, source_funding):
     if source_funding_evidences:
         transformed_files = await transform_funding_evidence_files(
             source_funding,
+            target_funding,
             source_funding_evidences,
             target_funding_id
         )
